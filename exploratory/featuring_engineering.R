@@ -11,7 +11,7 @@ str(df.train)
 # test
 #   Read in test dataset
 df.test = read_csv("data/test.csv")
-#   Artificially created target variable to ncol matches
+#   Artificially created target variable so ncol matches
 df.test = add_column(df.test, age = rep(0, nrow(df.test)))
 #   Indicator variable for both train and test
 df.train = add_column(df.train, TrainInd = rep(1, nrow(df.train)))
@@ -37,10 +37,10 @@ df.train.test1 = df.train.test1 %>% distinct(user.id, .keep_all = TRUE)
 
 head(df.train.test, n = 30)
 df.train.test1 %>% filter(user.id == 11869)
-s
 # Checking if there are missing values on this subset
 missing = colMeans(is.na(df.train.test1))
 missing
+# Yes there are still missing values in the text variable
 
 str(df.train.test$sign)
 
@@ -52,7 +52,7 @@ df.train.test1$date = NULL
 factor.variables = sapply(df.train.test1, class)
 factor.variables = factor.variables[factor.variables == "character"]
 
-# Taking text out factor variables
+# Taking text variable out of factor.variables list
 factor.variables = factor.variables[-which(names(factor.variables) == "text")]
 
 # Class change for factor variables
@@ -63,13 +63,6 @@ str(df.train.test1)
 # Imputation for character variables
 df.train.test1$text[is.na(df.train.test1$text)] = "Unknown"
 
-
-# # Imputation for numeric variables
-# numeric.variables = which(sapply(df.train.test, is.numeric))
-# df.numeric.imputed = df.train.test %>%
-#   transmute_at(vars(numeric.variables), funs(func={ifelse(is.na(.), mean(., na.rm=T), .)}))
-# 
-# df.train.test[, names(numeric.vecs)] = df.numeric.imputed
 
 # Rechecking if there are any missing values
 missmap(df.train.test1)
@@ -85,9 +78,17 @@ df.test = df.test %>% select(-TrainInd, -age)
 # Dropping TrainInd from df.train and df.test
 df.train = df.train %>% select(-TrainInd)
 
-# Dropping post.id and user.id from train
-df.train$post.id = NULL
-df.train$user.id = NULL
+# Topic Modelling ---------------------------------------------------------
+# Now using topic modelling to extract more features from the text
+
+
+
+
+# # Dropping post.id and user.id from train
+# df.train$post.id = NULL
+# df.train$user.id = NULL
+
+
 
 ################################################################################
 
