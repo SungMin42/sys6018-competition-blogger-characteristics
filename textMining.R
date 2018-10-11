@@ -272,3 +272,7 @@ saveRDS(df.train.final, file = "df.train.final.rds")
 
 dim(df.train.final)
 dim(df.test.final)
+
+# df.train.final and df.test.final are data frames of the train and test data including a document term matrix
+# at the sparse term removal threshold of 0.95, ten topics modeled with LDA(), and 13 columns detailing the
+# lexical diversity of the concatenated blogs of each user.
