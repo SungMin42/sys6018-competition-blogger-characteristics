@@ -6,4 +6,4 @@ Project Roles:
 
 2. Andrew Evans (ace8p): Data cleaning; TFIDF
 
-3. Michael Yang (sy8pa): GitHub Coordinator; GLM Lasso 
+3. Michael Yang (sy8pa): GitHub Coordinator; GLM Lasso; XGBoost 
