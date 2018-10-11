@@ -10,6 +10,21 @@ library(stringr)
 library(tidyr)
 library(lubridate)
 
+
+# a file of months translated to english 
+months <- as.data.frame(read.delim('months.txt', sep = ",", header = FALSE))
+colnames(months) <- c("V1","V2")
+
+# import the train and test data, removing the age (response) and binding the rows
+df.train <- read_csv('train.csv')
+df.test <- read_csv('test.csv')
+
+df.test = add_column(df.test, age = rep(0, nrow(df.test)))
+df.train = add_column(df.train, TrainInd = rep(1, nrow(df.train)))
+df.test = add_column(df.test, TrainInd = rep(0, nrow(df.test)))
+
+df.train.test = rbind(df.train, df.test)
+
 ##### Format the dates #####
 
 # string split the date column, add a row Index, and fix empty Months and Years
