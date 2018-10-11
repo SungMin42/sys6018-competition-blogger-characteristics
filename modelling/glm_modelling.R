@@ -61,6 +61,7 @@ x.sparse.train = sparse.model.matrix(~., data = x.train)
 x.test = df.test.final
 x.sparse.test = sparse.model.matrix(~., data = x.test)
 
+
 # fitting glmnet
 glm.lasso.fit = glmnet(x = x.sparse.train, y = y.train, alpha = 1)
 
@@ -75,7 +76,7 @@ coef = coef(glm.lasso.fit, s = lambda)
 
 # getting test prediction
 predictions = predict(cvfit, newx = x.sparse.test, s = "lambda.min")
-write.csv(predictions, 'predictions1.csv')
+write.csv(predictions, 'predictions2.csv')
 
 # saving coef, x.train, x.test sparse matrices and y.train
 saveRDS(coef, "data//coef.rds")
