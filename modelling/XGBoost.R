@@ -14,7 +14,7 @@ y.train = readRDS("data//y.train.rds")
 non.zero.coef = coef@Dimnames[[1]][which(coef !=0)]
 
 # adding other non text variables to this list
-non.zero.coef = c('userid', 'gender', 'topic', 'sign', 'age', non.zero.coef)
+non.zero.coef = c('userid', 'gender', 'topic', 'sign', 'age', 'month', non.zero.coef)
 
 # subsetting train and test based on non.zero.coef
 x.train1 = x.train[, which(colnames(x.train) %in% non.zero.coef)]
@@ -29,19 +29,25 @@ x.sparse.test1 = sparse.model.matrix(~., data = x.test1)
 
 # xgboost modelling with cross validation
 bst.cv <- xgb.cv(data = x.sparse.train1, label = y.train, nfold = 5,
-                 max_depth = 8, 
-                 min_child_weight = 1,
+                 max_depth = 2, 
                  nrounds = 1000, 
                  objective = "reg:linear",
                  early_stopping_rounds = 50)
 
 # So the best model seems to be at iteration 97
 
-bst = xgboost(data = x.sparse.train1, label = y.train, nfold = 5,
+bst1 = xgboost(data = x.sparse.train1, label = y.train,
               max_depth = 8, 
               min_child_weight = 1,
-              nrounds = 100, 
+              nrounds = 177, 
               objective = "reg:linear")
 
-predictions = predict(bst, x.sparse.test1)
-write.csv(cbind(user.id, predictions), "prediction xgboost1.csv")
+bst2 = xgboost(data = x.sparse.train1, label = y.train,
+               max_depth = 2, 
+               nrounds = 430, 
+               objective = "reg:linear")
+
+predictions.bst2 = predict(bst2, x.sparse.test1)
+predictions = (predictions.glm + predictions.bst2) / 2
+write.csv(cbind(user.id, predictions), "prediction glm lasso and xgboost 2.csv")
+
