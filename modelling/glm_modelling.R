@@ -1,56 +1,84 @@
 
 # GLM Lasso ---------------------------------------------------------------
-
+# Loading packages necessary for glmnet
 library(glmnet)
 library(magrittr)
 library(dplyr)
+
+# going to root git directory
 setwd("..")
 
-df.train.final = readRDS("data//df.train.final.rds")
-df.test.final = readRDS("data//df.test.final.rds")
+# reading in data in data folder
+df.train.final = readRDS("data//df.train.final.95.rds")
+df.test.final = readRDS("data//df.test.final.95.rds")
 
-# Note that we will not need user.id for prediction
-df.train.final$user.id = NULL
-
-# Another useless field as it currently stands is the date and text field
+# another useless field as it currently stands is the date and text field
 df.train.final$date = NULL
 df.test.final$date = NULL
 df.train.final$text = NULL
 df.test.final$text = NULL
 
-# Getting rid of illegal names that do now work with sparse matrices
+# getting rid of illegal names that do now work with sparse matrices
 df.train.final$'break' = NULL
 df.train.final$'next' = NULL
 df.test.final$'next' = NULL
 df.test.final$'break' = NULL
-colnames(df.train.final)[573:582] = c('topic1', 'topic2', 'topic3', 'topic4', 'topic5', 'topic6', 'topic7', 'topic8', 'topic9', 'topic10')
-colnames(df.test.final)[573:582] = c('topic1', 'topic2', 'topic3', 'topic4', 'topic5', 'topic6', 'topic7', 'topic8', 'topic9', 'topic10')
 
+# data preparation for sparse matrix
 # renaming duplicate variables
-colnames(df.train.final)[3] = "starsign"
-colnames(df.test.final)[4] = "starsign"
+colnames(df.train.final)[which(colnames(df.train.final) == 'cant0')[1]] = 'cant1'
+colnames(df.test.final)[which(colnames(df.test.final) == 'cant0')[1]] = 'cant1'
+colnames(df.train.final)[which(colnames(df.train.final) == 'didnt0')[1]] = 'didnt1'
+colnames(df.test.final)[which(colnames(df.test.final) == 'didnt0')[1]] = 'didnt1'
+colnames(df.train.final)[which(colnames(df.train.final) == 'doesnt0')[1]] = 'doesnt1'
+colnames(df.test.final)[which(colnames(df.test.final) == 'doesnt0')[1]] = 'doesnt1'
+colnames(df.train.final)[which(colnames(df.train.final) == 'dont0')[1]] = 'dont1'
+colnames(df.test.final)[which(colnames(df.test.final) == 'dont0')[1]] = 'dont1'
+colnames(df.train.final)[which(colnames(df.train.final) == 'isnt0')[1]] = 'isnt1'
+colnames(df.test.final)[which(colnames(df.test.final) == 'isnt0')[1]] = 'isnt1'
+colnames(df.train.final)[which(colnames(df.train.final) == 'wasnt0')[1]] = 'wasnt1'
+colnames(df.test.final)[which(colnames(df.test.final) == 'wasnt0')[1]] = 'wasnt1'
+colnames(df.train.final)[which(colnames(df.train.final) == 'wont0')[1]] = 'wont1'
+colnames(df.test.final)[which(colnames(df.test.final) == 'wont0')[1]] = 'wont1'
 
-# train data prep for glmnet
+# renaming variables with spaces in them
+colnames(df.train.final)[which(colnames(df.train.final) == 'Number of Words')[1]] = 'NoWords'
+colnames(df.test.final)[which(colnames(df.test.final) == 'Number of Words')[1]] = 'NoWords'
+colnames(df.train.final)[which(colnames(df.train.final) == 'Avg Word Length')[1]] = 'AvgWordLength'
+colnames(df.test.final)[which(colnames(df.test.final) == 'Avg Word Length')[1]] = 'AvgWordLength'
+colnames(df.train.final)[which(colnames(df.train.final) == 'Lexical Density')[1]] = 'LexDensity'
+colnames(df.test.final)[which(colnames(df.test.final) == 'Lexical Density')[1]] = 'LexDensity'
+colnames(df.train.final)[which(colnames(df.train.final) == 'Number of Unique Words')[1]] = 'NumUniqueWords'
+colnames(df.test.final)[which(colnames(df.test.final) == 'Number of Unique Words')[1]] = 'NumUniqueWords'
+
+# creating y column and x sparse matrix for train
 y.train = df.train.final$age
 x.train = df.train.final
 x.train$age = NULL
 x.sparse.train = sparse.model.matrix(~., data = x.train)
 
-# test data prep for glmnet
-user.id = df.test.final$user.id
+# creating x sparse matrix for test
 x.test = df.test.final
-x.test$user.id = NULL
 x.sparse.test = sparse.model.matrix(~., data = x.test)
 
-# Fitting glmnet
-glm.lasso.fit = glmnet(x = x.sparse.train, y = y.train, alpha = 0)
+# fitting glmnet
+glm.lasso.fit = glmnet(x = x.sparse.train, y = y.train, alpha = 1)
 
-# Taking the lambda value that minimises the mean-squared error from cross validation
-cvfit = cv.glmnet(x.sparse.train, y.train, alpha = 0)
+# taking the lambda value that minimises the mean-squared error from cross validation
+cvfit = cv.glmnet(x.sparse.train, y.train, alpha = 1)
 plot(cvfit)
 lambda = cvfit$lambda.min
+lambda
 
-# Getting test prediction
+# extracting the coefficients to be used in other models
+coef = coef(glm.lasso.fit, s = lambda)
+
+# getting test prediction
 predictions = predict(cvfit, newx = x.sparse.test, s = "lambda.min")
+write.csv(predictions, 'predictions1.csv')
 
-write.csv(cbind(user.id, predictions), 'predictions.csv')
+# saving coef, x.train, x.test sparse matrices and y.train
+saveRDS(coef, "data//coef.rds")
+saveRDS(x.train, "data//x.train.rds")
+saveRDS(x.test, "data//x.test.rds")
+saveRDS(y.train, "data//y.train.rds")
